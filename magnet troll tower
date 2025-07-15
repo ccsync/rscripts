@@ -1,0 +1,189 @@
+local plr = game:GetService("Players").LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+
+local tpPart = workspace:FindFirstChild("WinsObbyPart1")
+local superMagnet = workspace:FindFirstChild("SuperMagnet")
+local gravityCoil = workspace:FindFirstChild("GravityCoil")
+if not tpPart then return end
+
+pcall(function() plr.PlayerGui.Trek6:Destroy() end)
+
+local gui = Instance.new("ScreenGui", plr.PlayerGui)
+gui.Name = "Trek6"
+gui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.new(0, 280, 0, 240)
+mainFrame.Position = UDim2.new(0.5, -140, 0.5, -120)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Active = true
+mainFrame.Draggable = true
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+
+local minimizeBtn = Instance.new("TextButton", mainFrame)
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+minimizeBtn.Text = "-"
+minimizeBtn.TextScaled = true
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+minimizeBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 6)
+
+local minimized = false
+
+local tabBar = Instance.new("Frame", mainFrame)
+tabBar.Size = UDim2.new(1, 0, 0.15, 0)
+tabBar.Position = UDim2.new(0, 0, 0, 0)
+tabBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+
+local tabs = {"Win Farm", "Items", "Settings"}
+local pages = {}
+
+for i, name in ipairs(tabs) do
+    local tab = Instance.new("TextButton", tabBar)
+    tab.Size = UDim2.new(1 / #tabs, 0, 1, 0)
+    tab.Position = UDim2.new((i - 1) / #tabs, 0, 0, 0)
+    tab.Text = name
+    tab.TextScaled = true
+    tab.Font = Enum.Font.GothamBold
+    tab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tab.TextColor3 = Color3.new(1,1,1)
+
+    local page = Instance.new("Frame", mainFrame)
+    page.Size = UDim2.new(1, 0, 0.85, 0)
+    page.Position = UDim2.new(0, 0, 0.15, 0)
+    page.BackgroundTransparency = 1
+    page.Visible = i == 1
+    pages[name] = page
+
+    tab.MouseButton1Click:Connect(function()
+        for _, p in pairs(pages) do p.Visible = false end
+        page.Visible = true
+    end)
+end
+
+local input = Instance.new("TextBox", pages["Win Farm"])
+input.Size = UDim2.new(0.8, 0, 0.2, 0)
+input.Position = UDim2.new(0.1, 0, 0.05, 0)
+input.PlaceholderText = "How many wins?"
+input.TextScaled = true
+input.Font = Enum.Font.Gotham
+input.TextColor3 = Color3.new(1,1,1)
+input.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Instance.new("UICorner", input).CornerRadius = UDim.new(0, 6)
+
+local status = Instance.new("TextLabel", pages["Win Farm"])
+status.Size = UDim2.new(1, 0, 0.15, 0)
+status.Position = UDim2.new(0, 0, 0.3, 0)
+status.Text = ""
+status.TextScaled = true
+status.Font = Enum.Font.Gotham
+status.TextColor3 = Color3.new(1,1,1)
+status.BackgroundTransparency = 1
+
+local startButton = Instance.new("TextButton", pages["Win Farm"])
+startButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+startButton.Position = UDim2.new(0.1, 0, 0.5, 0)
+startButton.Text = "Start"
+startButton.TextScaled = true
+startButton.Font = Enum.Font.GothamBold
+startButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
+startButton.TextColor3 = Color3.fromRGB(0,0,0)
+Instance.new("UICorner", startButton).CornerRadius = UDim.new(0, 6)
+
+local pauseButton = startButton:Clone()
+pauseButton.Text = "Pause"
+pauseButton.Position = UDim2.new(0.1, 0, 0.75, 0)
+pauseButton.Parent = pages["Win Farm"]
+
+local delayInput = Instance.new("TextBox", pages["Settings"])
+delayInput.Size = UDim2.new(0.8, 0, 0.2, 0)
+delayInput.Position = UDim2.new(0.1, 0, 0.2, 0)
+delayInput.PlaceholderText = "Delay in seconds (e.g. 2)"
+delayInput.TextScaled = true
+delayInput.Font = Enum.Font.Gotham
+delayInput.TextColor3 = Color3.new(1,1,1)
+delayInput.BackgroundColor3 = Color3.fromRGB(40,40,40)
+delayInput.Text = "2"
+Instance.new("UICorner", delayInput).CornerRadius = UDim.new(0, 6)
+
+local function createItemBtn(name, part)
+    local btn = Instance.new("TextButton", pages["Items"])
+    btn.Size = UDim2.new(0.8, 0, 0.2, 0)
+    btn.Position = UDim2.new(0.1, 0, #pages["Items"]:GetChildren() * 0.25 - 0.1, 0)
+    btn.Text = name
+    btn.TextScaled = true
+    btn.Font = Enum.Font.Gotham
+    btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    btn.MouseButton1Click:Connect(function()
+        if not part then return end
+        paused = true
+        local root = plr.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            local original = root.CFrame
+            root.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+            wait(0.5)
+            root.CFrame = original
+        end
+        wait(0.2)
+        paused = false
+    end)
+end
+
+createItemBtn("1x SuperMagnet", superMagnet)
+createItemBtn("Gravity Coil", gravityCoil)
+
+local farming = false
+local paused = false
+
+local function teleportLegOntoPart()
+    local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    local rleg = plr.Character:FindFirstChild("Right Leg") or plr.Character:FindFirstChild("RightLowerLeg")
+    local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+    if root and rleg and hum then
+        hum:ChangeState(Enum.HumanoidStateType.Jumping)
+        local offset = root.Position - rleg.Position
+        root.CFrame = CFrame.new(tpPart.Position + offset + Vector3.new(0, 0.5, 0))
+    end
+end
+
+startButton.MouseButton1Click:Connect(function()
+    if farming then return end
+    local times = tonumber(input.Text)
+    local delay = tonumber(delayInput.Text) or 2
+    if not times or times < 1 then
+        status.Text = "Invalid input"
+        return
+    end
+    farming = true
+    for i = 1, times do
+        while paused do wait(0.1) end
+        teleportLegOntoPart()
+        status.Text = "Win " .. i .. " / " .. times
+        wait(delay)
+    end
+    status.Text = "Done!"
+    farming = false
+end)
+
+pauseButton.MouseButton1Click:Connect(function()
+    paused = not paused
+    pauseButton.Text = paused and "Resume" or "Pause"
+end)
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, child in pairs(mainFrame:GetChildren()) do
+        if child ~= minimizeBtn and child ~= tabBar then
+            child.Visible = not minimized
+        end
+    end
+    for _, page in pairs(pages) do
+        page.Visible = not minimized and page.Visible
+    end
+    tabBar.Visible = not minimized
+    minimizeBtn.Text = minimized and "+" or "-"
+end)
